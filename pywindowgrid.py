@@ -8,16 +8,15 @@ buttons = []
 lock_x = 0
 lock_y = 0
 
-width_sizes = 10
-height_sizes = 5
+columns = 10
+lines = 5
 
 
 def _execute_command(command):
     process = Popen(command.split(" "), stdout=PIPE)
     (output, err) = process.communicate()
     process.wait()
-    lines = list(filter(lambda line: line, output.decode().split('\n')))
-    return lines
+    return list(filter(lambda line: line, output.decode().split('\n')))
 
 
 avaliable_size_response = _execute_command('xprop -root _NET_WORKAREA')
@@ -26,8 +25,8 @@ init_x = int(avaliable_size[0])
 init_y = int(avaliable_size[1])
 width = int(avaliable_size[2])
 height = int(avaliable_size[3])
-block_size_w = width / width_sizes
-block_size_h = height / height_sizes
+block_size_w = width / columns
+block_size_h = height / lines
 
 screens = []
 screens_lines = _execute_command("xrandr --listmonitors")
@@ -43,6 +42,7 @@ for s_line in screens_lines:
             'x': x,
             'y': y
         })
+
 
 def get_active_window_title():
     root = subprocess.Popen(['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
@@ -62,10 +62,10 @@ def get_active_window_title():
 
     return None
 
+
 def get_window():
-    lines = _execute_command("wmctrl -p -G -l")
     window_name = get_active_window_title()
-    for line in lines:
+    for line in _execute_command("wmctrl -p -G -l"):
         values = list(filter(lambda i: i, line.split(' ')))
         if len(values) > 6:
             name = ' '.join(values[8:])
@@ -74,7 +74,7 @@ def get_window():
 
 
 def on_move(x, y):
-    global buttons, lock_x, lock_y, width_sizes, height_sizes, block_size_w, block_size_h, init_x, init_y, keys
+    global buttons, lock_x, lock_y, columns, lines, block_size_w, block_size_h, init_x, init_y, keys
     ctrl = len(list(filter(lambda n: n == 'ctrl', keys))) > 0
     shift = len(list(filter(lambda n: n == 'shift', keys))) > 0
     if not ctrl:
@@ -87,8 +87,8 @@ def on_move(x, y):
     block_x_end = 0
     block_y_init = 0
     block_y_end = 0
-    for w_index in range(0, width_sizes):
-        for h_index in range(0, height_sizes):
+    for w_index in range(0, columns):
+        for h_index in range(0, lines):
             block_x_init = init_x + block_size_w * w_index
             block_x_end = block_x_init + block_size_w
             block_y_init = init_y + block_size_h * h_index
