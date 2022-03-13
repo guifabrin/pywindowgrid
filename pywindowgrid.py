@@ -6,7 +6,7 @@ from functions import get_screens, on_click, on_move, on_press, on_release
 buttons = []
 keyboard_keys = []
 
-gui_app, gui_roots, screens = get_screens(10, 5)
+gui_app, gui_roots, screens = get_screens(20, 10)
 
 last_timestamp = time.time()
 last_x, last_y, last_command, last_window = None, None, None, None

@@ -5,7 +5,6 @@ import time
 import tkinter as tk
 from screeninfo import get_monitors
 
-
 def get_active_window_title():
     root = subprocess.Popen(['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
     stdout, stderr = root.communicate()
@@ -40,32 +39,46 @@ def get_window():
 
 def get_screens(columns, lines):
     app = tk.Tk()
+    monitors = []
+    for monitor in get_monitors():
+        app2 = tk.Toplevel(app)
+        app2.geometry("{}x{}+{}+{}".format(monitor.width, monitor.height, monitor.x, monitor.y))
+        app2.wait_visibility(app2)
+        app2.overrideredirect(True)
+        monitors.append([app2.winfo_width(), app2.winfo_height(), app2.winfo_x(), app2.winfo_y()])
+        app2.withdraw()
+        app2.destroy()
+    app.destroy()
+
     roots = []
     screens = []
-    for monitor in get_monitors():
+    app = tk.Tk()
+    for monitor in monitors:
         blocks = []
+        width, height, x, y = monitor
         root = tk.Toplevel(app)
-        root.geometry("{}x{}+{}+{}".format(monitor.width, monitor.height, monitor.x, monitor.y))
+        root.geometry("{}x{}+{}+{}".format(width, height, x, y))
         root.overrideredirect(True)
         root.wait_visibility(root)
         root.wm_attributes("-alpha", 0.5)
-        canvas = tk.Canvas(root, width=monitor.width, height=monitor.height)
+        canvas = tk.Canvas(root, width=width, height=height)
         canvas.pack()
         for w_index in range(0, columns):
             for h_index in range(0, lines):
-                size_column = monitor.width / columns
-                size_line = monitor.height / lines
-                init_x = monitor.x + size_column * w_index
+                size_column = width / columns
+                size_line = height / lines
+                init_x = x + size_column * w_index
                 end_x = init_x + size_column
-                init_y = monitor.y + size_line * h_index
+                init_y = y + size_line * h_index
                 end_y = init_y + size_line
                 blocks.append([init_x, end_x, init_y, end_y,
-                               canvas.create_rectangle(init_x-monitor.x, init_y-monitor.y, end_x-monitor.x, end_y-monitor.y, fill="blue")])
+                               canvas.create_rectangle(init_x-x, init_y-y, end_x-x, end_y-y, fill="blue")])
             roots.append(root)
         screens.append({
             'blocks': blocks,
             'canvas': canvas
         })
+    app.withdraw()
     return app, roots, screens
 
 
